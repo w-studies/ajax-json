@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modal Selects</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+</head>
+
+<body>
+  <main class="container">
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-primary mt-4" data-bs-toggle="modal" data-bs-target="#exampleModal">
+      Launch demo modal
+    </button>
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-12 mb-3">
+                <label for="">Categorias</label>
+                <select id="first" class='form-select'>
+                  <option value=''>Selecione uma Categoria</option>
+                  <option value="A">Categoria A</option>
+                  <option value="B">Categoria B</option>
+                  <option value="C">Categoria C</option>
+                  <option value="D">Categoria D</option>
+                  <option value="AD">Categoria inválida</option>
+                </select>
+              </div>
+              <div class="col-12 mb-3">
+                <label for="">Another Select</label>
+                <select id="second" class='form-select' disabled>
+                  <option>Nenhuma Categoria Selecionada</option>
+                </select>
+              </div>
+              <div class="col-3 small" id='requestElement'>
+
+              </div>
+              <div class="col-9 small" id='responseElement'>
+
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary">Save changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+    crossorigin="anonymous"></script>
+
+  <script>
+
+    const fillSecond = (data) => {
+      const options = [];
+      for (const { id, name } of data) {
+        options.push(`<option value="${id}">${name}</option>`);
+      }
+
+      if (options.length) {
+        second.innerHTML = options.join();
+        second.removeAttribute('disabled');
+      } else {
+        resetSecond('Nenhum Produto encontrado para a categoria selecionada.');
+      }
+    }
+
+    const getProductsFromCategory = async (category) => {
+      const response = await fetch('api/?' + new URLSearchParams({ category }))
+
+      requestElement.innerHTML = 'Request:<br>' + new URLSearchParams({ category }).toString()
+
+
+      if ([404, 400].includes(response.status)) {
+        resetSecond('Erro! A categoria selecionada não é válida!');
+      } else {
+        const jsonData = await response.json();
+        fillSecond(jsonData)
+        responseElement.innerHTML = 'Response:<br><pre>' + JSON.stringify(jsonData, null, 2) + '</pre>';
+      }
+    }
+
+    resetSecond = (innerText = 'Nenhuma Categoria Selecionada') => {
+      second.innerHTML = `<option>${innerText}</option>`
+      second.setAttribute('disabled', true)
+    }
+
+    first.onchange = ({ target }) => {
+      requestElement.innerHTML = ''
+      responseElement.innerHTML = ''
+      if (first.value) {
+        second.innerHTML = '<option>Carregando...</option>'
+        getProductsFromCategory(first.value);
+      } else {
+        resetSecond()
+      }
+    }
+
+  </script>
+</body>
+
+</html>
